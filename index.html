@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>愤怒的韭菜 - 微信小游戏（浏览器试玩版）</title>
+  <link rel="icon" type="image/png" href="favicon.png?v=1">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico?v=1">
+  <link rel="apple-touch-icon" href="favicon.png?v=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      background: radial-gradient(1200px 700px at 50% 20%, #2a3550 0%, #171d2e 55%, #0e1220 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #cfd8e6;
+    }
+    .wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .frame {
+      position: relative;
+      padding: 10px;
+      border-radius: 22px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04));
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
+      background: #000;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #gameCanvas { width: auto; height: min(88vh, 780px); aspect-ratio: 9 / 16; }
+    /* ---- 隐私协议确认遮罩 ---- */
+    .privacy-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(8, 12, 24, 0.72);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      opacity: 1;
+      transition: opacity 0.35s ease;
+    }
+    .privacy-mask.show { display: flex; }
+    .privacy-card {
+      width: 100%;
+      max-width: 340px;
+      padding: 26px 24px 22px;
+      border-radius: 20px;
+      background: linear-gradient(165deg, #24334f 0%, #151d33 100%);
+      border: 1px solid rgba(142, 240, 122, 0.35);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      text-align: center;
+      color: #dfe7f3;
+    }
+    .privacy-card .pc-title {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      color: #8ef07a;
+    }
+    .privacy-card .pc-body {
+      font-size: 14px;
+      line-height: 1.75;
+      color: #c3cddd;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .privacy-card .pc-body b { color: #8ef07a; font-weight: 600; }
+    .privacy-card .pc-btn {
+      display: block;
+      width: 100%;
+      padding: 12px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #0c1a10;
+      background: linear-gradient(180deg, #a4f08a 0%, #6fd45a 100%);
+      box-shadow: 0 6px 18px rgba(111, 212, 90, 0.35);
+      cursor: pointer;
+    }
+    .privacy-card .pc-btn:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="frame">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+  </div>
+  <div class="privacy-mask" id="privacyMask">
+    <div class="privacy-card">
+      <div class="pc-title">🌱 测试版本说明</div>
+      <div class="pc-body">
+        <p>这是一个<b>未发行的小游戏</b>，当前版本仅用于<b>测试与反馈</b>，不代表最终品质。</p>
+        <br>
+        <p>你的游戏数据（积分、头像、武器进度）仅保存在<b>本机浏览器</b>中，不会上传至任何服务器。</p>
+        <br>
+        <p>点击下方按钮即表示你已阅读并同意以上说明。</p>
+      </div>
+      <button class="pc-btn" id="privacyOk">同意并开始游戏</button>
+    </div>
+  </div>
+  <script src="js/game-core.js"></script>
+  <script>
+    window.game = AngryLeeksGame;
+    AngryLeeksGame.start('gameCanvas');
+    (function () {
+      var mask = document.getElementById('privacyMask');
+      var agreed = false;
+      try { agreed = !!localStorage.getItem('al_privacy_ok'); } catch (e) {}
+      if (!agreed) { mask.classList.add('show'); }
+      document.getElementById('privacyOk').addEventListener('click', function () {
+        try { localStorage.setItem('al_privacy_ok', '1'); } catch (e) {}
+        mask.classList.remove('show');
+        mask.style.opacity = '0';
+        setTimeout(function () { mask.style.display = 'none'; }, 350);
+      });
+    })();
+  </script>
+</body>
+</html>

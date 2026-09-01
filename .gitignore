@@ -1,0 +1,17 @@
+# 开发工具目录（不上传）
+.workbuddy/
+.codebuddy/
+test/
+
+# 操作系统 / 编辑器
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# 日志与临时文件
+*.log
+*.tmp
+project.private.config.json
