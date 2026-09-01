@@ -393,12 +393,12 @@
   var LAUNCH_OFF = 70;
   /* ===== 山体场景（v4 自下而上打上山顶） =====
    * 山脚 = 绿油油的韭菜地（弹弓中置），敌人按关卡从低到高站在梯田上：
-   *   第 1 关 游资狗 → 第 6 关 空头熊，山顶平台是黑宫（解放世界后冲进去）。 */
+   *   第 1 关 游资狗 → 第 6 关 空头熊，山顶平台是城堡（欢庆胜利后冲进去）。 */
   /* 每关梯田台面 y（关卡越高越高，间距 70：从山脚一路爬升到山巅）。
    * 第 1 关台面(505)明显高于弹弓发射点(510-70=…)，保证游资狗站得高、够得着 */
   var TERRACE_TOPS = [505, 435, 365, 295, 225, 155];
-  var TERRACE_HALF = [168, 156, 142, 124, 106, 88]; // v7.8 整体收窄（山体更瘦，弹弓居中的黄土空地更大）；仍严格递减 12/14/18/18/18；顶台 88 容金牛+黑宫并排（金牛右缘 313=台面右缘，不能再缩）
-  var PEAK_Y = 120;     // 山顶平台（黑宫所在地）
+  var TERRACE_HALF = [168, 156, 142, 124, 106, 88]; // v7.8 整体收窄（山体更瘦，弹弓居中的黄土空地更大）；仍严格递减 12/14/18/18/18；顶台 88 容金牛+城堡并排（金牛右缘 313=台面右缘，不能再缩）
+  var PEAK_Y = 120;     // 山顶平台（城堡所在地）
 
   var G = {
     state: 'MENU',        // MENU | SELECT | SHOP | PLAY | WIN | LOSE
@@ -414,7 +414,7 @@
     hp: 12,               // v7：主角生命值（被敌人激光击中扣 1）
     hurtT: 0,             // 受伤红屏计时
     minis: [],            // 分裂弹 / 机枪弹雨
-    nukeDouble: false,    // 本关是否触发过核爆双倍收益
+    nukeDouble: false,    // 本关是否触发过大爆炸双倍收益
     shotsLeft: 0,
     score: 0,
     enemiesLeft: 0,
@@ -441,7 +441,7 @@
     pressedBtn: null,
     isLast: false,
     levelName: '',
-    whiteFlash: 0,        // v7.3：黑宫受击闪白计时（弹头命中山顶黑宫的反馈）
+    whiteFlash: 0,        // v7.3：城堡受击闪白计时（弹头命中山顶城堡的反馈）
     /* v3 角色/武器系统 / v7.7：积分兑换武器 */
     gender: storageGet('al_gender', 'male'),          // male 韭菜 | female 韭菜花
     weapon: storageGet('al_weapon', 'stone'),         // 当前装备的武器（玩家自选，默认石头）
@@ -458,26 +458,26 @@
    *   stone   石头         冷兵器   巨石直砸
    *   knife   炸弹         热兵器   命中爆炸 AOE
    *   grenade 火箭弹       现代战争 弹雨扫射（一发 7 颗）
-   *   gun     原子弹       核战争   重炮轰击（命中爆炸 AOE）
-   *   cannon  脉冲弹       智能战争 EMP 核爆全屏双倍
+   *   gun     超级炸弹       重火力   重炮轰击（命中爆炸 AOE）
+   *   cannon  脉冲弹       智能战争 EMP 大爆炸全屏双倍
    *   nuke    恒星弹       星球大战 升空到山头上方 → 轨道轰炸 + 无人机群
    * cost: 兑换所需积分（0=默认拥有石头）。玩家在武器库用积分自由兑换，
    * 打得好（三星通关）还可直接奖励解锁下一把武器。
-   * type: ball 直射 / pierce 穿透 / rapid 连发 / bomb 爆炸 / nuke 核爆 / carrier 空袭
+   * type: ball 直射 / pierce 穿透 / rapid 连发 / bomb 爆炸 / nuke 大爆炸 / carrier 空袭
    */
   var WEAPONS = {
     stone:   { name: '石头',   era: 1, cost: 0,    dmg: 26, type: 'ball',   desc: '巨石直砸山头' },
     knife:   { name: '炸弹',   era: 2, cost: 250,  dmg: 40, type: 'bomb',   desc: '扫雷黑地雷·炸飞一片' },
     grenade: { name: '火箭弹', era: 3, cost: 600,  dmg: 48, type: 'rapid',  desc: '火箭弹雨·火力覆盖' },
-    gun:     { name: '原子弹', era: 4, cost: 1000, dmg: 58, type: 'bomb',   desc: '广岛原子弹·夷平高崖' },
+    gun:     { name: '超级炸弹', era: 4, cost: 1000, dmg: 58, type: 'bomb',   desc: '巨型炸弹·夷平高崖' },
     cannon:  { name: '脉冲弹', era: 5, cost: 1600, dmg: 75, type: 'nuke',   desc: '脉冲弹·EMP 全屏打击' },
     nuke:    { name: '恒星弹', era: 6, cost: 2400, dmg: 85, type: 'carrier', desc: '火太阳恒星弹·星球大战' }
   };
   var WEAPON_ORDER = ['stone', 'knife', 'grenade', 'gun', 'cannon', 'nuke'];
   var LV_COST = [0, 200, 500, 1000, 2000];   /* 升到 Lv2~Lv5 的花费 */
   var LV_MAX = 5;
-  var ERA_NAMES = ['', '冷兵器时代', '热兵器时代', '现代战争时代', '核战争时代', '智能战争时代', '星球大战时代'];
-  var ERA_ICON = ['', '🏹', '💣', '🚀', '☢', '⚡', '🌌'];
+  var ERA_NAMES = ['', '冷兵器时代', '热兵器时代', '现代战争时代', '重火力时代', '智能战争时代', '星球大战时代'];
+  var ERA_ICON = ['', '🏹', '💣', '🚀', '💥', '⚡', '🌌'];
   var LV_COST = [0, 200, 500, 1000, 2000];   /* 升到 Lv2~Lv5 的花费 */
   var LV_MAX = 5;
 
@@ -490,7 +490,7 @@
     dog:        { hp: 150, score: 800,  coins: 18, name: '游资狗',   type: 'dog' },
     tiger:      { hp: 180, score: 1000, coins: 22, name: '机构虎',   type: 'tiger' },
     lion:       { hp: 220, score: 1500, coins: 30, name: '庄家狮',   type: 'lion' },
-    whitehouse: { hp: 900, score: 5000, coins: 60, name: '白房子老怪', type: 'whitehouse' }
+    whitehouse: { hp: 900, score: 5000, coins: 60, name: '山顶老怪', type: 'whitehouse' }
   };
   /* 每关敌人 HP 成长系数 */
   var ENEMY_GROW = 0.12;
@@ -498,8 +498,8 @@
   /* ====================== 关卡定义（v4 山体战场 / v7 直线弹道） ======================
    * item = [kind, cxOff(相对画面中心的横向偏移), yUp(物品底部距本关梯田台面的高度), w, h, elite?]
    * 敌人按关卡从低到高站在山体梯田上：第 1 关游资狗（山脚）→ 第 5 关空头熊（顶峰），
-   * 第 6 关金牛坐在黑宫门口——战胜金牛，冲进黑宫，解放世界！
-   * weapon：本关主角武器（stone 石头 / knife 炸弹 / grenade 火箭弹 / gun 原子弹 / cannon 脉冲弹 / nuke 恒星弹）
+   * 第 6 关金牛坐在城堡门口——战胜金牛，冲进城堡，欢庆胜利！
+   * weapon：本关主角武器（stone 石头 / knife 炸弹 / grenade 火箭弹 / gun 超级炸弹 / cannon 脉冲弹 / nuke 恒星弹）
    */
   var LEVELS = [
     {
@@ -555,7 +555,7 @@
       name: '第 4 关 · 高崖 · 庄家狮',
       leeks: 8,
       weapon: 'gun',
-      hint: '原子弹一响，狮王也低头！',
+      hint: '超级炸弹一响，狮王也低头！',
       items: [
         ['stone', -45, 0, 76, 64],
         ['lion', -45, 64, 90, 96],
@@ -578,10 +578,10 @@
       ]
     },
     {
-      name: '第 6 关 · 黑宫门口 · 金牛',
+      name: '第 6 关 · 城堡门口 · 金牛',
       leeks: 12,
       weapon: 'nuke',
-      hint: '恒星弹锁定，火太阳轰炸黑宫门口的金牛！',
+      hint: '恒星弹锁定，火太阳轰炸城堡门口的金牛！',
       items: [
         ['bull', 44, 0, 84, 88, true],
         ['bear', -46, 0, 64, 70],
@@ -760,7 +760,7 @@
       G.shake = Math.min(G.shake + 7, 12);
       G.enemiesLeft--;
       if (G.enemiesLeft <= 0 && G.state === 'PLAY') {
-        /* v4：末关打完空头熊 → 抓多头牛冲进黑宫放烟花的结局动画 */
+        /* v4：末关打完空头熊 → 抓多头牛冲进城堡放烟花的结局动画 */
         G.finalT = 0; G.fwTimer = 0; G.finaleBoom = false;
         computeStars();
         if (G.isLast) { G.state = 'FINAL'; G.uiButtons = []; }
@@ -837,8 +837,8 @@
     Sound.bigCrack();
     addText(x, y - 18, 'BOOM!', '#ffd75e', 20);
   }
-  /* 核爆：全屏 + 双倍收益标记。v7.4：伤害与双倍收益按调用方武器的等级计算
-   （之前硬编码 'nuke' 导致脉冲弹/原子弹等非 nuke 武器触发时伤害错乱） */
+  /* 大爆炸：全屏 + 双倍收益标记。v7.4：伤害与双倍收益按调用方武器的等级计算
+   （之前硬编码 'nuke' 导致脉冲弹/超级炸弹等非 nuke 武器触发时伤害错乱） */
   function nuke(x, y, wkey, wlv) {
     spawnParticles(x, y, '#fff3c4', 40, 460, 'circle');
     spawnParticles(x, y, '#ff8a4f', 30, 360);
@@ -859,7 +859,7 @@
     }
     Sound.bigCrack();
     Sound.bigCrack();
-    addText(x, y - 24, '☢ 核爆！', '#ffd75e', 26);
+    addText(x, y - 24, '💥 大爆炸！', '#ffd75e', 26);
   }
   /* 分裂弹：生成 n 个小弹丸散射 */
   function spawnSplits(p, n, kind, dmg, speed) {
@@ -1146,12 +1146,12 @@
         if (p.fading || p.dead) break;
       }
     }
-    /* --- 韭菜 vs 山顶黑宫（v7.3：黑宫是剧情建筑，弹头命中即炸开冒烟，
-     * 不再穿过建筑飞到天上。黑宫不可破坏——结局是抓牛冲进去。 --- */
+    /* --- 韭菜 vs 山顶城堡（v7.3：城堡是剧情建筑，弹头命中即炸开冒烟，
+     * 不再穿过建筑飞到天上。城堡不可破坏——结局是抓牛冲进去。 --- */
     for (i = 0; i < G.projectiles.length; i++) {
       p = G.projectiles[i];
       if (p.resting || p.fading || p.dead) continue;
-      /* 黑宫碰撞盒：x 在山顶中央 W/2±55（主体+两翼，黑宫固定在山顶不随弹弓移动），y 在 PEAK_Y-46..PEAK_Y（墙+三角楣） */
+      /* 城堡碰撞盒：x 在山顶中央 W/2±55（主体+两翼，城堡固定在山顶不随弹弓移动），y 在 PEAK_Y-46..PEAK_Y（墙+三角楣） */
       if (p.y < PEAK_Y && p.y > PEAK_Y - 46 && Math.abs(p.x - W / 2) < 55) {
         hitWhitehouse(p);
         if (p.dead) continue;
@@ -1159,7 +1159,7 @@
     }
   }
 
-  /* v7.3：弹头命中山顶黑宫——爆炸烟尘 + 黑宫闪白 + 弹头结束（不伤害任何方块/敌人） */
+  /* v7.3：弹头命中山顶城堡——爆炸烟尘 + 城堡闪白 + 弹头结束（不伤害任何方块/敌人） */
   function hitWhitehouse(p) {
     spawnParticles(p.x, p.y, '#ffffff', 14, 220, 'circle');
     spawnParticles(p.x, p.y, '#ffd75e', 8, 180);
@@ -1167,8 +1167,8 @@
     G.whiteFlash = 0.6;
     G.shake = Math.min(G.shake + 4, 11);
     Sound.hit();
-    addText(p.x, p.y - 16, '命中黑宫!', '#ffe9a8', 13);
-    /* 所有弹头命中黑宫即结束（航母弹头此时早已展开无人机群，不影响轰炸） */
+    addText(p.x, p.y - 16, '命中城堡!', '#ffe9a8', 13);
+    /* 所有弹头命中城堡即结束（航母弹头此时早已展开无人机群，不影响轰炸） */
     p.dead = true;
   }
 
@@ -1219,7 +1219,7 @@
       if (b.enemy && wtype === 'split') applySlow(b, 1.5);
       /* 武器特殊命中效果 */
       if (wtype === 'bomb') { explode(p.x, p.y, 72, weaponDmg(p.weapon, p.wlv) * 1.5); p.dead = true; }
-      else if (wtype === 'nuke') { nuke(p.x, p.y, p.weapon, p.wlv); p.dead = true; }   /* 脉冲弹/原子弹核爆 */
+      else if (wtype === 'nuke') { nuke(p.x, p.y, p.weapon, p.wlv); p.dead = true; }   /* 脉冲弹/超级炸弹大爆炸 */
       else if (wtype === 'rapid') { spawnBulletSpray(p, 7); p.dead = true; }   /* v7：机关枪弹雨 */
       else if (wtype === 'carrier') {                                            /* v7：恒星弹（轨道轰炸）弹头 */
         if (!p.spawned) {
@@ -1304,10 +1304,10 @@
     }
   }
 
-  /* ====================== 通关结局：抓多头牛 → 冲进黑宫 → 解放世界放烟花 ====================== */
+  /* ====================== 通关结局：抓多头牛 → 冲进城堡 → 欢庆胜利放烟花 ====================== */
   function updateFinal(dt) {
     var t = G.finalT;
-    /* 烟花节拍：全程零星绽放，冲进黑宫后（4s+）加密齐射 */
+    /* 烟花节拍：全程零星绽放，冲进城堡后（4s+）加密齐射 */
     G.fwTimer -= dt;
     if (G.fwTimer <= 0) {
       G.fwTimer = t > 4 ? 0.2 : 0.5;
@@ -1316,7 +1316,7 @@
     if (!G.finaleBoom && t > 4.2) {
       G.finaleBoom = true;
       for (var fi = 0; fi < 7; fi++) spawnFirework();
-      Sound.cheer();   /* v7.11：冲进黑宫 · 烟花高潮 → 人群欢呼 */
+      Sound.cheer();   /* v7.11：冲进城堡 · 烟花高潮 → 人群欢呼 */
     }
     /* 5s 后出现操作按钮 */
     if (t > 5 && G.uiButtons.length === 0) {
@@ -1603,7 +1603,7 @@
       G.unlock = G.level + 1;
       storageSet('al_unlock', G.unlock);
     }
-    /* v2：通关收益累加（核弹关双倍） */
+    /* v2：通关收益累加（重炮关双倍） */
     var reward = G.score * (G.nukeDouble ? 2 : 1);
     G.money += reward;
     storageSet('al_money', G.money);
@@ -2006,7 +2006,7 @@
 
   /* ====================== 渲染：山体战场（v4 自下而上打上山顶） ======================
    * 山脚 = 绿油油的韭菜地（弹弓中置），梯田一层层升高，
-   * 关卡越高敌人站得越高，山顶平台就是黑宫。 */
+   * 关卡越高敌人站得越高，山顶平台就是城堡。 */
   function drawGround(showHouse) {
     if (showHouse === undefined) showHouse = true;
     var cx = W / 2;
@@ -2051,14 +2051,14 @@
     ctx.lineTo(cx + TERRACE_HALF[0] + 4, GROUND_Y - 46);
     ctx.lineTo(W, GROUND_Y - 76);
     ctx.closePath(); ctx.fill();
-    /* ===== 山顶平台（黑宫所在地） ===== */
+    /* ===== 山顶平台（城堡所在地） ===== */
     var platHw = 44;
     ctx.fillStyle = '#3f8f2e';
     rr(cx - platHw, PEAK_Y, platHw * 2, TERRACE_TOPS[5] - PEAK_Y, 6);
     ctx.fill();
-    /* 黑宫（决战空头熊后，抓住多头牛冲进去） */
+    /* 城堡（决战空头熊后，抓住多头牛冲进去） */
     if (showHouse) drawPeakHouse(G.state === 'FINAL' && G.finalT > 3.4);
-    /* v7.3：黑宫受击闪白（弹头命中时整栋建筑闪白光） */
+    /* v7.3：城堡受击闪白（弹头命中时整栋建筑闪白光） */
     if (showHouse && G.whiteFlash > 0) {
       ctx.fillStyle = 'rgba(255,255,255,' + (G.whiteFlash * 0.55).toFixed(3) + ')';
       rr(cx - 46, PEAK_Y - 48, 92, 50, 4);
@@ -2106,7 +2106,7 @@
     ctx.fill();
   }
 
-  /* 山顶黑宫（v7：美式纯白——白墙白顶三角楣 + 门廊柱 + 女儿墙，红旗无 logo） */
+  /* 山顶城堡（v7：美式纯白——白墙白顶三角楣 + 门廊柱 + 女儿墙，红旗无 logo） */
   function drawPeakHouse(glow) {
     var cx = W / 2, baseY = PEAK_Y;
     /* 台基 */
@@ -2307,7 +2307,7 @@
 
   /* ====================== 渲染：韭菜主角（v2 重绘） ======================
    * 夸张造型：大头圆身 + 头顶一大丛绿油油韭菜叶 / 女性开花；
-   * 时代外观：冷兵器人形 → 热兵器背炮弹 → 现代战争机翼 → 核战争导弹 → 智能智子。
+   * 时代外观：冷兵器人形 → 热兵器背炮弹 → 现代战争机翼 → 重火力导弹 → 智能智子。
    */
   /* v5 圆形大头：默认用大头特写素材（表情清晰），可换成玩家自定义头像。
    * forced：'male'/'female' 强制用某性别默认头（菜单双卡并列时用） */
@@ -2382,7 +2382,7 @@
    *    stone   石头    → 灰色圆石
    *    knife   炸弹    → 扫雷黑地雷（红色引线+火花）
    *    grenade 火箭弹  → 红白箭体+尾翼+动态尾焰
-   *    gun     原子弹  → 广岛原子弹（瘦长弹体+尾翼+黄黑警示带）
+   *    gun     超级炸弹  → 超级炸弹（瘦长弹体+尾翼+黄黑警示带）
    *    cannon  脉冲弹  → 能量核心+旋转电磁环
    *    nuke    恒星弹  → 火太阳（旋转光芒+火焰球）
    * 所有绘制以 (0,0) 为中心、r 为基准半径，调用前已 translate/rotate。 */
@@ -2536,7 +2536,7 @@
     ammoFace(r, 0, 0, 0.85);
   }
 
-  /* ④ 原子弹：黑色广岛"小男孩"（黑色细长弹体 + 圆鼻头 + 4 片方形尾翼 + 顶部引信 + 黄黑警示带） */
+  /* ④ 超级炸弹：黑色"巨型弹体"（黑色细长弹体 + 圆鼻头 + 4 片方形尾翼 + 顶部引信 + 黄黑警示带） */
   function drawAmmoAtomic(r) {
     /* 弹体（黑色金属，两侧暗、中线略亮） */
     var body = ctx.createLinearGradient(-r * 0.3, 0, r * 0.3, 0);
@@ -2728,14 +2728,14 @@
         /* 武器：斜握在两手中（略朝上，指向山上），尺寸加大明显大于头 */
         if (hasImg(wKey)) {
           var ws = r * 2.3;
-          var wh = (wKey === 'nuke') ? ws * 1.5 : ws;  /* 核弹=导弹造型：纵向更长 */
+          var wh = (wKey === 'nuke') ? ws * 1.5 : ws;  /* 重炮=导弹造型：纵向更长 */
           ctx.save();
           ctx.translate(0, r * 1.25);
           ctx.rotate(-0.32);
           drawImg(wKey, -ws / 2, -wh / 2, ws, wh);
           ctx.restore();
         } else if (wKey && AMMO_DRAW[wKey]) {
-          /* v7.6：Canvas 精绘武器拿在手里（扫雷地雷/火箭弹/黑色原子弹/脉冲弹/恒星弹） */
+          /* v7.6：Canvas 精绘武器拿在手里（扫雷地雷/火箭弹/黑色超级炸弹/脉冲弹/恒星弹） */
           ctx.save();
           ctx.translate(0, r * 1.25);
           ctx.rotate(-0.32);
@@ -3241,7 +3241,7 @@
     leekCrown(0, -r * 1.55, r * 0.5);
   }
 
-  /* 时代造型：核弹 */
+  /* 时代造型：重炮 */
   function drawWNuke(r) {
     /* 弹体 */
     ctx.fillStyle = '#4a5568';
@@ -4055,7 +4055,7 @@
     ctx.stroke();
   }
 
-  /* 白房子老怪：会移动的西式白房子，戴高礼帽举金色镰刀权杖 */
+  /* 山顶老怪：会移动的西式庄园，戴高礼帽举金色镰刀权杖 */
   function drawWhiteHouse(b) {
     var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
     var s = Math.min(b.w, b.h);
@@ -4695,8 +4695,8 @@
     ctx.fillStyle = 'rgba(255,255,255,0.95)';
     ctx.strokeStyle = 'rgba(40,70,30,0.7)';
     ctx.lineWidth = 4;
-    ctx.strokeText('从山脚韭菜地，一路打到山顶黑宫！', 0, 40);
-    ctx.fillText('从山脚韭菜地，一路打到山顶黑宫！', 0, 40);
+    ctx.strokeText('从山脚韭菜地，一路打到山顶城堡！', 0, 40);
+    ctx.fillText('从山脚韭菜地，一路打到山顶城堡！', 0, 40);
     ctx.restore();
     /* ===== 选择战士（男 / 女） ===== */
     var pickY = H * 0.30, pickH = H * 0.19;
@@ -4766,7 +4766,7 @@
     ctx.fillStyle = '#ffb8d8';
     ctx.font = 'bold 16px sans-serif';
     ctx.fillText('👩 韭菜花', femaleX + cardW / 2, pickY + cardH - 9);
-    /* ===== 关卡武器条（6 关 6 种武器，v7.6 时代版：石头/炸弹/火箭弹/原子弹/脉冲弹/恒星弹） ===== */
+    /* ===== 关卡武器条（6 关 6 种武器，v7.6 时代版：石头/炸弹/火箭弹/超级炸弹/脉冲弹/恒星弹） ===== */
     var wpY = pickY + cardH + 16, wpH = 30;
     var wKeys = ['stone', 'knife', 'grenade', 'gun', 'cannon', 'nuke'];
     var wNames = wKeys.map(function (k) { var d = WEAPONS[k]; return d ? d.name : k; });
@@ -4919,7 +4919,7 @@
     ctx.textAlign = 'center';
     ctx.shadowColor = 'rgba(0,0,0,0.4)';
     ctx.shadowBlur = 3;
-    ctx.fillText('拖动弹弓瞄准 · 松手发射 · 砸碎庄家堡垒', W / 2, H - 26);
+    ctx.fillText('拖动弹弓瞄准 · 松手发射 · 击败庄家堡垒', W / 2, H - 26);
     ctx.shadowBlur = 0;
     /* v7.9：重置确认弹窗（点击「重置」后弹出，确定才执行；弹窗期间仅弹窗按钮可点） */
     if (G.resetModal) {
@@ -5109,7 +5109,7 @@
       ctx.restore();
       return;
     }
-    /* v7.5：武器图标 = 新 Canvas 精绘造型（地雷/火箭弹/黑色原子弹/脉冲弹/恒星弹） */
+    /* v7.5：武器图标 = 新 Canvas 精绘造型（地雷/火箭弹/黑色超级炸弹/脉冲弹/恒星弹） */
     if (def && AMMO_DRAW[id]) {
       AMMO_DRAW[id](21);
       ctx.restore();
@@ -5370,11 +5370,11 @@
     }
   }
 
-  /* ====================== 结局动画：抓多头牛 → 冲进黑宫 → 解放世界 ====================== */
+  /* ====================== 结局动画：抓多头牛 → 冲进城堡 → 欢庆胜利 ====================== */
   function drawFinale() {
     var t = G.finalT;
     var cx = W / 2;
-    /* 多头牛：先沿韭菜地跑向山脚，再一鼓作气冲上山顶（冲向黑宫） */
+    /* 多头牛：先沿韭菜地跑向山脚，再一鼓作气冲上山顶（冲向城堡） */
     if (t < 3.6) {
       var bx, by, bw2, bh2;
       if (t < 2.3) {
@@ -5401,10 +5401,10 @@
     if (t < 2.3) {
       bannerText('抓住多头牛！', H * 0.30, clamp(t / 0.4, 0, 1));
     } else if (t < 4.0) {
-      bannerText('冲进黑宫！', H * 0.30, 1);
+      bannerText('攻入城堡！', H * 0.30, 1);
     } else {
-      bannerText('世界解放！', H * 0.30, clamp((t - 4.0) / 0.5, 0, 1), 40);
-      bannerText('抓住多头牛 · 冲进黑宫 · 烟花漫天', H * 0.30 + 52, clamp((t - 4.6) / 0.5, 0, 1), 16);
+      bannerText('欢庆胜利！', H * 0.30, clamp((t - 4.0) / 0.5, 0, 1), 40);
+      bannerText('抓住多头牛 · 攻入城堡 · 烟花漫天', H * 0.30 + 52, clamp((t - 4.6) / 0.5, 0, 1), 16);
     }
     /* 星级 + 收益 */
     if (t > 3.2) {
