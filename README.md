@@ -7,7 +7,7 @@
 > 全部图形 **Canvas 实时绘制**、全部音效 **WebAudio 合成**（含结局烟花人群欢呼），
 > 无任何图片/音频资源依赖，即拷即用。
 
-🎮 **在线试玩**：https://game.umyrobot.com（桌面 / 手机 / 微信内置浏览器均可，首次访问需同意测试版隐私协议）
+🎮 **在线试玩**：[https://game.umyrobot.com](https://game.umyrobot.com)（桌面 / 手机 / 微信内置浏览器均可，首次访问需同意测试版隐私协议）
 
 ---
 
@@ -88,7 +88,7 @@ AngryLeeks/
 ### 浏览器
 
 直接双击打开 `index.html`，或 `python -m http.server 8000` 后访问 `http://localhost:8000/`。
-线上版已部署至 https://game.umyrobot.com（Nginx + Let's Encrypt HTTPS，http 自动跳 https）。
+线上版已部署至 [https://game.umyrobot.com](https://game.umyrobot.com)（Nginx + Let's Encrypt HTTPS，http 自动跳 https）。
 
 ## 代码结构（js/game-core.js）
 
